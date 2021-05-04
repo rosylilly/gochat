@@ -19,10 +19,36 @@ GO_FILES:=$(shell find . -type f -name '*.go' -print)
 
 # ldflag
 GO_LDFLAGS_VERSION:=-X '${ROOT_PACKAGE}.VERSION=${VERSION}' -X '${ROOT_PACKAGE}.REVISION=${REVISION}'
-GO_LDFLAGS:=$(GO_LDFLAGS_VERSION)
-
+# symbol table and dwarf
+GO_LDFLAGS_SYMBOL:=
+ifdef RELEASE
+	GO_LDFLAGS_SYMBOL:=-w -s
+endif
+# static ldflag
+GO_LDFLAGS_STATIC:=
+ifdef RELEASE
+	GO_LDFLAGS_STATIC:=-extldflags '-static'
+endif
+# build ldflags
+GO_LDFLAGS:=$(GO_LDFLAGS_VERSION) $(GO_LDFLAGS_SYMBOL) $(GO_LDFLAGS_STATIC)
+# build tags
+GO_BUILD_TAGS:=debug
+ifdef RELEASE
+	GO_BUILD_TAGS:=release
+endif
+# race detector
+GO_BUILD_RACE:=-race
+ifdef RELEASE
+	GO_BUILD_RACE:=
+endif
+# static build flag
+GO_BUILD_STATIC:=
+ifdef RELEASE
+	GO_BUILD_STATIC:=-a -installsuffix netgo
+	GO_BUILD_TAGS:=$(GO_BUILD_TAGS),netgo
+endif
 # go build
-GO_BUILD:=-ldflags "$(GO_LDFLAGS)"
+GO_BUILD:=-tags=$(GO_BUILD_TAGS) $(GO_BUILD_RACE) $(GO_BUILD_STATIC) -ldflags "$(GO_LDFLAGS)"
 
 # ビルドタスク
 .PHONY: build
