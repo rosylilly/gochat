@@ -17,7 +17,12 @@ BINARIES:=$(COMMAND_PACKAGES:$(ROOT_PACKAGE)/cmd/%=$(BINDIR)/%)
 # ビルド時にチェックする .go ファイル
 GO_FILES:=$(shell find . -type f -name '*.go' -print)
 
-# ldflag
+# gRPC ファイル
+PB_FILES:=$(shell find . -type f -name '*.proto' -print)
+# proto から生成される .go ファイル
+GOPB_FILES:=$(PB_FILES:%.proto=%.pb.go)
+
+# version ldflag
 GO_LDFLAGS_VERSION:=-X '${ROOT_PACKAGE}.VERSION=${VERSION}' -X '${ROOT_PACKAGE}.REVISION=${REVISION}'
 # symbol table and dwarf
 GO_LDFLAGS_SYMBOL:=
@@ -55,5 +60,17 @@ GO_BUILD:=-tags=$(GO_BUILD_TAGS) $(GO_BUILD_RACE) $(GO_BUILD_STATIC) -ldflags "$
 build: $(BINARIES)
 
 # 実ビルドタスク
-$(BINARIES): $(GO_FILES) VERSION .git/HEAD
+$(BINARIES): $(GO_FILES) $(GOPB_FILES) VERSION .git/HEAD
 	@go build -o $@ $(GO_BUILD) $(@:$(BINDIR)/%=$(ROOT_PACKAGE)/cmd/%)
+
+# protoc のビルド
+$(GOPB_FILES): $(PB_FILES) $(BINDIR)/protoc-gen-go
+	@protoc \
+		--plugin=protoc-gen-go=$(BINDIR)/protoc-gen-go \
+		-I ./proto \
+		--go_out=./proto \
+		--go_opt=paths=source_relative \
+		$(@:%.pb.go=%.proto)
+
+$(BINDIR)/protoc-gen-go: go.sum
+	@go build -o $@ google.golang.org/protobuf/cmd/protoc-gen-go

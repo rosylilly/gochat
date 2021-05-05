@@ -1,0 +1,8 @@
+syntax = "proto3";
+package gochat;
+option go_package = "github.com/rosylilly/gochat/proto";
+
+message Message {
+  string id = 1;
+  string body = 2;
+}
