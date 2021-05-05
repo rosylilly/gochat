@@ -59,6 +59,11 @@ GO_BUILD:=-tags=$(GO_BUILD_TAGS) $(GO_BUILD_RACE) $(GO_BUILD_STATIC) -ldflags "$
 .PHONY: build
 build: $(BINARIES)
 
+# お掃除
+.PHONY: clean
+clean:
+	@$(RM) $(GOPB_FILES) $(BINARIES) $(BINDIR)/protoc-gen-go
+
 # 実ビルドタスク
 $(BINARIES): $(GO_FILES) $(GOPB_FILES) VERSION .git/HEAD
 	@go build -o $@ $(GO_BUILD) $(@:$(BINDIR)/%=$(ROOT_PACKAGE)/cmd/%)
