@@ -1,7 +1,7 @@
 # バージョン
 VERSION:=$(shell cat VERSION)
 # リビジョン
-REVISION:=$(shell git rev-parse --short HEAD)
+REVISION:=$(shell git rev-parse --short HEAD 2> /dev/null || cat REVISION)
 
 # 出力先のディレクトリ
 BINDIR:=bin
